@@ -1,26 +1,5 @@
 #include "xml.h"
 
-void pprint(const xml::Element& elem, int tab=1)
-{
-    string ident(tab*4 - 1, ' ');
-    cout << ident << "element: " << elem.tag_name << endl;
-    
-    for (auto& i: elem.attributes)
-    {
-        cout << ident << "    attr: " << i << endl;
-    }
-
-    for (auto& t : elem.text)
-    {
-        cout << ident << "    text: " << t << endl;
-    }
-
-    for (auto& c: elem.children)
-    {
-        pprint(c, tab+1);
-    }
-}
-
 
 template<typename Test>
 void unittest(const string& label, Test test)
@@ -37,18 +16,6 @@ void unittest(const string& label, Test test)
     }
 }
 
-template<typename Type, typename Traits, typename Elem>
-basic_ostream<Type, Traits>& operator << (basic_ostream<Type, Traits>& stream, const vector<Elem>& vec)
-{
-    stream << "vector [";
-    for (const auto& elem : vec)
-    {
-        stream << "'" << elem << "', ";
-    }
-    stream << "]";
-    return stream;
-}
-
 template<typename Type>
 void assert_equal(const Type& a, const Type& b)
 {
@@ -62,17 +29,76 @@ void assert_equal(const Type& a, const Type& b)
     }
 }
 
-
-template<typename Type>
-void simpletest(const string& label, Type in, Type expect)
+// unit testing for the util::split() function
+void test_split()
 {
-    unittest(label, [&](){
-        // cout << "    in: " << in << endl;
-        // cout << "    expect: " << expect << endl;
-        assert_equal(expect, in);
-    });
-}
+    auto test_split_char = [](const string& in, const vector<string>& expect) {
+        return bind([](const string& in, const vector<string>& expect) {
+            vector<string> output;
+            util::split(in, ' ', output);
+            assert_equal(output, expect);
+        }, in, expect);
+    };
+    auto test_split_str = [](const string& in, const vector<string>& expect) {
+        return bind([](const string& in, const vector<string>& expect) {        
+            vector<string> output;
+            util::split(in, " \r\t\n", output);
+            assert_equal(output, expect);
+        }, in, expect);
+    };
 
+    // simple case with a string containing whitespace
+    unittest("split(): simple case: char", test_split_char(
+        "the  quick brown   fox",
+        {"the", "quick", "brown", "fox"}
+        ));
+    unittest("split(): simple case: str ", test_split_str(
+        "the \r\rquick\n\tbrown   \r\r\n\n\n\tfox",
+        {"the", "quick", "brown", "fox"}
+        ));
+    
+    
+    // general case (leading, containing, and trailing whitespace)
+    unittest("split(): general case: char", test_split_char(
+        "   the quick  brown   fox ",
+        {"the", "quick", "brown", "fox"}
+        ));
+    unittest("split(): general case: str ", test_split_str(
+        " \t\rthe quick   \r\r\t\n\r \n brown \r\n fox   \r\t\n",
+        {"the", "quick", "brown", "fox"}
+        ));
+
+    
+    // leading whitespace only
+    unittest("split(): leading char: ", test_split_char(
+        "    thequick",
+        {"thequick"}
+        ));
+    unittest("split(): leading str:  ", test_split_str(
+        "  \r\t\nthequick",
+        {"thequick"}
+        ));
+
+    // trailing whitespace only
+    unittest("split(): trailing char: ", test_split_char(
+        "thequick   ",
+        {"thequick"}
+    ));
+    unittest("split(): trailing str:  ", test_split_str(
+        "thequick  \r\n\t  ",
+        {"thequick"}
+    ));
+
+    // "none" case
+    unittest("split(): none - char", test_split_char(
+        "thequickbrownfox",
+        {"thequickbrownfox"}
+    ));
+    unittest("split(): none - str  ", test_split_str(
+        "thequickbrownfox",
+        {"thequickbrownfox"}
+    ));
+}
 
 int main(int argc, char* argv[])
 {
@@ -81,19 +107,5 @@ int main(int argc, char* argv[])
         cout << "argument: " << argv[i] << endl;
     }
 
-    auto puresplit = [](const string& in, char c) {
-        vector<string> output;
-        util::split(in, c, output);
-        return output;
-    };
-    auto puresplit2 = [](const string& in, const string& c) {
-        vector<string> output;
-        util::split(in, c, output);
-        return output;
-    };
-    
-    simpletest("split char", puresplit("   the quick  brown   fox ", ' '),
-        vector<string>{"the", "quick", "brown", "fox"});
-    simpletest("split str", puresplit2(" \t\rthe quick   \r\r\t\n\r \n brown \r\n fox   \r\t\n", "\r\t\n "),
-        vector<string>{"the", "quick", "brown", "fox"});
+    test_split();
 }

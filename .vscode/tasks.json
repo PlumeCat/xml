@@ -7,11 +7,10 @@
             "label": "OSX Build Debug",
             "type": "shell",
             "command": "bash",
-            "cwd": "${workspaceRoot}",
             "args": [
 
                 "-c",
-                "\"",
+                "\"", // quote the entire command
                 
                     // clean 
                     "rm", "-r", "build/debug",
@@ -33,7 +32,7 @@
                         "-fms-extensions",
                         "-L/usr/local/lib",
 
-                "\""
+                "\"" // end quote
             ]
         },{
             "label": "OSX Build Release",

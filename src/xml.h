@@ -12,6 +12,19 @@
 
 using namespace std;
 
+// utility for streaming a vector
+template<typename Type, typename Traits, typename Elem>
+basic_ostream<Type, Traits>& operator << (basic_ostream<Type, Traits>& stream, const vector<Elem>& vec)
+{
+    stream << "[";
+    for (const auto& elem : vec)
+    {
+        stream << "'" << elem << "', ";
+    }
+    stream << "]";
+    return stream;
+}
+
 namespace util
 {
     // split a string into a series of tokens separated by 'c'
@@ -138,13 +151,18 @@ namespace xml
         for (auto it = begin; is_whitespace(it) && it < end; it++);
     }
 
+    void read_decl()
+
     void read(const string& fname, Element& root)
     {
         string source = util::read_text_file(fname);
-        int pos = 0;
+
+        // TODO: source = process(source)
+        // where "process" will check for utf8 / etc and map anything above xFF to "unprintable"
         
-        // pos = read_xml_decl();
-        // read_element();
+        int pos = 0;
+        pos = read_decl(pos, source, root);
+        pos = read_element(pos, source, root);
     }
 
     // void read_element(const string& src, Element& root)
@@ -207,127 +225,6 @@ namespace xml
     // }
 };
 
-
-
-// namespace parse
-// {
-//     struct rule
-//     {
-//         rule operator + (const rule& r) { return rule(); }
-//         rule operator | (const rule& r) { return rule(); }
-//         rule operator - (const rule& r) { return rule(); }
-//     };
-//     struct sequence : rule
-//     {
-//     };
-//     struct required : rule
-//     {
-//     };
-//     struct optional : rule
-//     {
-//     };
-//     struct repeat : rule
-//     {
-//     };
-//     struct repeat1 : rule
-//     {
-//     };
-//     struct literal : rule
-//     {
-//     };
-//     struct char_from : rule
-//     {
-//     };
-//     typedef literal l;
-
-//     template<typename R>
-//     void parse(const string& fname)
-//     {
-//         string source = read_text_file(fname);
-//         auto begin = source.begin();
-//         auto end = source.end();
-//     }
-
-
-//     void parse_postcode()
-//     {
-//         auto postcode = start_section + end_section;
-//     }
-
-
-//     void parse_xml()
-//     {
-//         // auto ch = char_from("\t\r\n"
-//         //                     " !\"#$%&'()*+,-./" // [x20-x2F]
-//         //                     "0123456789:;<=>?"  // [x30-x3F]
-//         //                     "@ABCDEFGHIJKLMNO"  // [x40-x4F]
-//         //                     "PQRSTUVWXYZ[\\]^_" // [x50-x5F]
-//         //                     "`abcdefghijklmno"  // [x60-x6F]
-//         //                     "pqrstuvwxyz{|}~␡" // [x70-x7F]
-//         //                     "" // [x80-x8F]
-//         //                     "" // [x90-x9F]
-//         //                     " ¡¢£¤¥¦§¨©ª«¬ ®¯"  // [xA0-xAF]
-//         //                     "°±²³´µ¶·¸¹º»¼½¾¿"  // [xB0-xBF]
-//         //                     "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ"  // [xC0-xCF]
-//         //                     "ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß"  // [xD0-xDF]
-//         //                     "àáâãäåæçèéêëìíîï"  // [xE0-xEF]
-//         //                     "ðñòóôõö÷øùúûüýþÿ");// [xF0-xFF]
-//         //                     // fuck the rest of unicode tbh
-//         //                     // TODO: make a "unicode range" rule as well as a "xml" rule
-//         //                     // TODO: handle unicode tbh
-//         // auto lowercase = char_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-//         // auto uppercase = char_from("abcdefghijklmnopqrstuvwxyz");
-//         // auto whitespace = repeat1(char_from(" \n\r\t"));
-//         // auto digit = char_from("0123456789");
-
-
-
-//         // auto cd_end;
-//         // auto char_data;
-//         // auto cd_start;
-//         // auto cd_sect;
-//         // auto attribute_value = (l("\"") + repeat() + l("\"")) | (l("'") + repeat() + l("'");
-//         // auto attribute = name + eq + attribute_value;
-//         // auto content = optional(char_data) + repeat((element | reference | cd_sect | processor_instruction | comment) + optional(char_data));
-//         // auto start_tag = l("<") + name + repeat(whitespace + attribute) + optional(whitespace) + l(">");
-//         // auto end_tag = l("</") + name + optional(whitespace) + l(">");
-//         // auto empty_tag = l("<") + name + repeat(whitespace + attribute) + optional(whitespace) + l("/>");
-//         // auto element = empty_tag | (start_tag + content + end_tag);
-
-//         // auto comment = l("<!--") + repeat(ch) - l("--") + l("-->");
-//         // auto processor_instruction = l("<?") + processor_instruction_target + optional(whitespace + optional(repeat(ch) - l("?>"))) + literal("?>");
-
-//         // auto name_token = repeat1(name_char);
-//         // auto name_start_char = l(":") | uppercase | lowercase | "_" | char_from("ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ");
-//         // auto name_char = name_start_char | l("-") | l(".") | digit | l("·");
-//         // auto name = name_start_char + repeat(name_char);
-
-//         // auto markupdecl = elementdecl | att_list_decl | entity_decl | notation_decl | processor_instruction | comment;
-//         // auto pe_reference = l("%") + name + ";";
-//         // auto decl_sep = pe_reference | whitespace;
-//         // auto int_subset = repeat(markupdecl | decl_sep);
-
-//         // auto misc = comment | processor_instruction | whitespace;
-//         // auto version_num = l("1.") + digit;
-//         // auto version_info = whitespace + l("version") + equal + ((l("'") + version_num + l("'")) | (l("\"") + version_num + l("\"")));
-//         // auto doctypedecl = l("<!DOCTYPE") + whitespace + name + optional(whitespace + external_id) + optional(whitespace) + optional(l("[") + int_subset + l("]") + optional(whitespace)) + literal(">");
-//         // auto equal = whitespace + l("=") + whitespace;
-//         // auto sd_decl = whitespace + l("standalone") + equal + (
-//         //     (l("'")  + (l("yes") | l("no")) + l("'")) |
-//         //     (l("\"") + (l("yes") | l("no")) + l("\""))
-//         // );
-//         // auto xmldecl = l("<?xml?") + version_info + optional(encoding_decl) + optional(sd_decl) + optional(whitespace) + l("?>");
-//         // auto prolog = optional(xmldecl) + repeated(misc) + optional(doctypedecl + repeated(misc));
-//         // auto document = prolog + element + repeat(misc);
-
-//     }
-
-//     namespace xml
-//     {
-//     };
-// };
-
-
 #endif
 
 
@@ -364,16 +261,19 @@ Chars and Whitespace
 
 Names and Tokens
     [5]     Name                ::=      NameStartChar (NameChar)*
-        [4a]    NameChar            ::=      NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
         [4]     NameStartChar       ::=      ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+        [4a]    NameChar            ::=      NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
         [6]     ?? Names               ::=      Name (#x20 Name)*
     [7]     Nmtoken             ::=      (NameChar)+
         [8]     ?? Nmtokens            ::=      Nmtoken (#x20 Nmtoken)*
 
 Comment, Processing instructions
     [15]    Comment             ::=      '<!--' (   (Char - '-') |  ('-' (Char - '-')   ))* '-->'
+                                         '<!--' followed by multiple "Char" (with no instance of '--', also first char must not be '-'), then '-->'
     [16]    PI                  ::=      '<?' PITarget (  S (   Char* - (Char* '?>' Char*)   )  )? '?>'
+                                         '<?' + PITarget +  + '?>'
         [17]    PITarget            ::=      Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
+
 
 Element
     [39]    element             ::=      EmptyElemTag | STag content ETag
@@ -425,3 +325,27 @@ Character and entity references
         [11]    SystemLiteral       ::=      ('"' [^"]* '"') | ("'" [^']* "'")
 
 */
+
+namespace util
+{
+    void pprint(const xml::Element& elem, int tab=1)
+    {
+        string ident(tab*4 - 1, ' ');
+        cout << ident << "element: " << elem.tag_name << endl;
+        
+        for (auto& i: elem.attributes)
+        {
+            cout << ident << "    attr: " << i << endl;
+        }
+
+        for (auto& t : elem.text)
+        {
+            cout << ident << "    text: " << t << endl;
+        }
+
+        for (auto& c: elem.children)
+        {
+            pprint(c, tab+1);
+        }
+    }
+};
