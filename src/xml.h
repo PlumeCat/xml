@@ -11,69 +11,78 @@
 
 using namespace std;
 
-
 namespace util
 {
-    // split a string into a series of tokens
+    // split a string into a series of tokens separated by 'c'
     void split(const string& str, char c, vector<string>& tokens)
     {
-        int s = 0;
-        int e = str.find(c, 0);
+        // clean tokens
+        tokens.clear();
+
+        // current position and first whitespace position
+        int pos = 0;
+        int cpos = 0;
+        
         while (true)
         {
-            if (e - s > 0)
+            // find the first instance of 'c'
+            cpos = str.find(c, pos);
+            if (cpos == string::npos)
             {
-                tokens.push_back(str.substr(s, e-s));
-            }
-
-            s = e+1;
-            e = str.find(c, s);
-
-            if (e == string::npos)
-            {
-                tokens.push_back(str.substr(s, str.size()-s));
+                if (pos < str.length())
+                {
+                    tokens.push_back(str.substr(pos, str.length()));
+                }
                 break;
             }
-        }
-    }
 
-    void split(const string& str, const string& c, vector<string>& tokens)
-    {
-        // get iterators for c
-        auto c1 = c.begin();
-        auto c2 = c.end();
+            // push the token
+            tokens.push_back(str.substr(pos, cpos-pos));
 
-        auto s = str.begin();
-        while (s != str.end())
-        {
-
-        }
-    }
-
-    // split a string into a series of tokens
-    void split(const string::iterator& begin, const string::iterator& end, vector<pair<string::iterator, string::iterator>>& delimiters)
-    {
-        auto current_start = begin;
-        auto current_pos = current_start;
-
-        while (current_pos != end)
-        {
-            if (*current_pos == ' ')
+            pos = cpos;
+            while (pos < str.length() && str[pos] == c)
             {
-                delimiters.push_back(make_pair(current_start, current_pos));
-                current_pos++;
-                current_start = current_pos;
-            }
-            else
-            {
-                current_pos++;
+                pos++;
             }
         }
-
-        delimiters.push_back(make_pair(current_start, current_pos));
     }
 
-    // text file utility
+    // split a string into a series of tokens separated by any character in "chars"
+    void split(const string& str, const string& chars, vector<string>& tokens)
+    {
+        // clean tokens
+        tokens.clear();
+
+        // current position, and first whitespace position
+        int pos = 0;
+        int wpos = 0;
+
+        while (true)
+        {
+            wpos = str.find_first_of(chars, pos);
+            if (wpos == string::npos)
+            {
+                // push the rest of the string and abort
+                if (pos < str.length())
+                {
+                    tokens.push_back(str.substr(pos, str.length()));
+                }
+                break;
+            }
+            
+            // push the current token
+            tokens.push_back(str.substr(pos, wpos-pos));
+
+            // scan for the next non-whitespace character
+            // don't need to check if pos < str.size() :)
+            pos = wpos;
+            while (pos < str.length() && chars.find(str[pos]) != string::npos)
+            {
+                pos++;
+            }
+        }
+    }
+
     void read_text_file(const string& fname, vector<string>& lines)
     {
         ifstream file(fname);
@@ -83,6 +92,7 @@ namespace util
             lines.push_back(line);
         }
     }
+
     string read_text_file(const string& fname)
     {
         vector<string> lines;
@@ -103,7 +113,7 @@ namespace xml
     {
         string tag_name = "";
         int generation = 0;
-        vector<string> text = "";
+        vector<string> text;
         vector<string> attributes;
         vector<Element> children;
     };
@@ -127,64 +137,73 @@ namespace xml
         for (auto it = begin; is_whitespace(it) && it < end; it++);
     }
 
-    void read_element(const string& src, Element& root)
-    {
-        if (src[0] != '<')
-        {
-            throw runtime_error("read_element() could not find STag" + src.substr(0, 10));
-        }
-
-        auto end_stag = src.find('>');
-        if (end_stag == string::npos)
-        {
-            throw runtime_error("read_element() could not find complete STag" + src.substr(0, 10));
-        }
-
-        if (src[end_stag-1] == '/')
-        {
-            // is self closed
-            vector<string> tokens;
-            util::split(src.substr(1, src.size()-3));
-        }
-        else
-        {
-            vector<string> tokens;
-            util::split(src.substr(1, src.size()-2));
-        }
-    }
-
-    // basic xml parser
-    // only supports utf8 encoding and won't handle multi-byte characters
     void read(const string& fname, Element& root)
     {
         string source = util::read_text_file(fname);
-        auto current_pos = source.begin();
-
-        // check for xml declaration
-        if (source.substr(0, 2) == "<?")
-        {
-            auto close_decl = source.find("?>", 2);
-            if (close_decl == string::npos)
-            {
-                throw runtime_error("declaration was not closed?");
-            }
-
-            string decl = source.substr(2, close_decl-2);
-
-            // vector<string> decl_tokens;
-            // split(decl, ' ', decl_tokens);
-            current_pos += close_decl + 2;
-        }
-
-        if (*current_pos != '<')
-        {
-            throw runtime_error("could not find root element opening tag");
-        }
-
-        Element root;
-        root.tag_name = "xml";
-        read_element(string(current_pos, source.end()), root);
+        int pos = 0;
+        
+        // pos = read_xml_decl();
+        // read_element();
     }
+
+    // void read_element(const string& src, Element& root)
+    // {
+    //     if (src[0] != '<')
+    //     {
+    //         throw runtime_error("read_element() could not find STag" + src.substr(0, 10));
+    //     }
+
+    //     auto end_stag = src.find('>');
+    //     if (end_stag == string::npos)
+    //     {
+    //         throw runtime_error("read_element() could not find complete STag" + src.substr(0, 10));
+    //     }
+
+    //     if (src[end_stag-1] == '/')
+    //     {
+    //         // is self closed
+    //         vector<string> tokens;
+    //         util::split(src.substr(1, src.size()-3));
+    //     }
+    //     else
+    //     {
+    //         vector<string> tokens;
+    //         util::split(src.substr(1, src.size()-2));
+    //     }
+    // }
+
+    // // basic xml parser
+    // // only supports utf8 encoding and won't handle multi-byte characters
+    // void read(const string& fname, Element& root)
+    // {
+    //     string source = util::read_text_file(fname);
+    //     auto current_pos = source.begin();
+
+    //     // check for xml declaration
+    //     if (source.substr(0, 2) == "<?")
+    //     {
+    //         auto close_decl = source.find("?>", 2);
+    //         if (close_decl == string::npos)
+    //         {
+    //             throw runtime_error("declaration was not closed?");
+    //         }
+
+    //         string decl = source.substr(2, close_decl-2);
+
+    //         // vector<string> decl_tokens;
+    //         // split(decl, ' ', decl_tokens);
+    //         current_pos += close_decl + 2;
+    //     }
+
+    //     if (*current_pos != '<')
+    //     {
+    //         throw runtime_error("could not find root element opening tag");
+    //     }
+
+    //     Element root;
+    //     root.tag_name = "xml";
+    //     read_element(string(current_pos, source.end()), root);
+    // }
 };
 
 

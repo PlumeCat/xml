@@ -3,18 +3,26 @@
 void pprint(const xml::Element& elem, int tab=1)
 {
     string ident(tab*4 - 1, ' ');
-    print(ident, "element:", elem.tag_name);
+    cout << ident << "element: ", elem.tag_name << endl;
+    
     for (auto& i: elem.attributes)
     {
-        print(ident, "    attr:", i);
+        cout << ident << "    attr: " << i << endl;
     }
 
-    print(ident, "    text:", "\"" + elem.text + "\"");
+    for (auto& t : elem.text)
+    {
+        cout << ident << "    text: " << t << endl;
+    }
+
     for (auto& c: elem.children)
     {
         pprint(c, tab+1);
     }
 }
+
+
+t
 
 int main()
 {

@@ -1,0 +1,45 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "OSX Build Debug",
+            "type": "shell",
+            "command": "bash",
+            "cwd": "${workspaceRoot}",
+            "args": [
+
+                "-c",
+                "\"",
+                
+                    // clean 
+                    "rm", "-r", "build/debug",
+                    "&&",
+                    "mkdir", "build/debug",
+                    "&&",
+                    
+                    "clang++",
+                        "src/main.cpp",
+                        "-o build/debug/xml",
+                        
+                        "-std=c++14",
+                        "-m32",
+                        "-arch", "i386",
+                        "-Wall",
+                        "-g",
+                        
+                        "-I/user/local/include",
+                        "-fms-extensions",
+                        "-L/usr/local/lib",
+
+                "\""
+            ]
+        },{
+            "label": "OSX Build Release",
+            "type": "shell",
+            "command": "echo",
+            "args": [ "\"Hello, World\"" ]
+        }
+    ]
+}
