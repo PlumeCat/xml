@@ -123,6 +123,10 @@ namespace util
 
 namespace xml
 {
+    struct Document
+    {
+        Element root;
+    }
     struct Element
     {
         string tag_name = "";
@@ -151,8 +155,6 @@ namespace xml
         for (auto it = begin; is_whitespace(it) && it < end; it++);
     }
 
-    void read_decl()
-
     void read(const string& fname, Element& root)
     {
         string source = util::read_text_file(fname);
@@ -165,64 +167,6 @@ namespace xml
         pos = read_element(pos, source, root);
     }
 
-    // void read_element(const string& src, Element& root)
-    // {
-    //     if (src[0] != '<')
-    //     {
-    //         throw runtime_error("read_element() could not find STag" + src.substr(0, 10));
-    //     }
-
-    //     auto end_stag = src.find('>');
-    //     if (end_stag == string::npos)
-    //     {
-    //         throw runtime_error("read_element() could not find complete STag" + src.substr(0, 10));
-    //     }
-
-    //     if (src[end_stag-1] == '/')
-    //     {
-    //         // is self closed
-    //         vector<string> tokens;
-    //         util::split(src.substr(1, src.size()-3));
-    //     }
-    //     else
-    //     {
-    //         vector<string> tokens;
-    //         util::split(src.substr(1, src.size()-2));
-    //     }
-    // }
-
-    // // basic xml parser
-    // // only supports utf8 encoding and won't handle multi-byte characters
-    // void read(const string& fname, Element& root)
-    // {
-    //     string source = util::read_text_file(fname);
-    //     auto current_pos = source.begin();
-
-    //     // check for xml declaration
-    //     if (source.substr(0, 2) == "<?")
-    //     {
-    //         auto close_decl = source.find("?>", 2);
-    //         if (close_decl == string::npos)
-    //         {
-    //             throw runtime_error("declaration was not closed?");
-    //         }
-
-    //         string decl = source.substr(2, close_decl-2);
-
-    //         // vector<string> decl_tokens;
-    //         // split(decl, ' ', decl_tokens);
-    //         current_pos += close_decl + 2;
-    //     }
-
-    //     if (*current_pos != '<')
-    //     {
-    //         throw runtime_error("could not find root element opening tag");
-    //     }
-
-    //     Element root;
-    //     root.tag_name = "xml";
-    //     read_element(string(current_pos, source.end()), root);
-    // }
 };
 
 #endif
