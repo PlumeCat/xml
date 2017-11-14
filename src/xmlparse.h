@@ -12,88 +12,87 @@ Modified list
     Removed "comments" (all the "[VC: ...]" bits)
 
 MODIFIED LIST
-    [1]   document   ::=    prolog element Misc*
-    [2]   Char   ::=   #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]  (any Unicode character, excluding the surrogate blocks, FFFE, and FFFF)
-    [3]   S   ::=   (#x20 | #x9 | #xD | #xA)+
-    [4]   NameStartChar   ::=   ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-    [4a]   NameChar   ::=   NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-    [5]   Name   ::=   NameStartChar (NameChar)*
-    [6]   Names   ::=   Name (#x20 Name)*
-    [7]   Nmtoken   ::=   (NameChar)+
-    [8]   Nmtokens   ::=   Nmtoken (#x20 Nmtoken)*
-    [9]   EntityValue   ::=   '"' ([^%&"] | PEReference | Reference)* '"' |  "'" ([^%&'] | PEReference | Reference)* "'"
-    [10]   AttValue   ::=   '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
-    [11]   SystemLiteral   ::=   ('"' [^"]* '"') | ("'" [^']* "'") 
-    [12]   PubidLiteral   ::=   '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
-    [13]   PubidChar   ::=   #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-    [14]   CharData   ::=   [^<&]* - ([^<&]* ']]>' [^<&]*)
-    [15]   Comment   ::=   '<!--' ((Char - '-') | ('-'(Char - '-')))* '-->'
-    [16]   PI   ::=   '<?' PITarget (S(Char* - (Char* '?>' Char*)))? '?>'
-    [17]   PITarget   ::=   Name - (('X' | 'x') ('M' |'m') ('L' | 'l'))
-    [18]   CDSect   ::=   CDStart CData CDEnd
-    [19]   CDStart   ::=   '<![CDATA['
-    [20]   CData   ::=   (Char* - (Char* ']]>' Char*))
-    [21]   CDEnd   ::=   ']]>'
-    [22]   prolog   ::=    XMLDecl? Misc* (doctypedecl Misc*)?
-    [23]   XMLDecl   ::=   '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
-    [24]   VersionInfo   ::=    S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
-    [25]   Eq   ::=    S? '=' S?
-    [26]   VersionNum   ::=   '1.' [0-9]+
-    [27]   Misc   ::=    Comment | PI | S				
-    [28]   doctypedecl   ::=   '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'
-    [28a]   DeclSep   ::=    PEReference | S [WFC: PE Between Declarations][28b]   intSubset   ::=   (markupdecl | DeclSep)*
-    [29]   markupdecl   ::=    elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment 
-    [30]   extSubset   ::=    TextDecl? extSubsetDecl
-    [31]   extSubsetDecl   ::=   ( markupdecl | conditionalSect | DeclSep)*
-    [32]   SDDecl   ::=    S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"')) 
-    [33-38 were removed]
-    [39]   element   ::=    EmptyElemTag | STag content ETag
-    [40]   STag   ::=   '<' Name (S Attribute)* S? '>'[WFC: Unique Att Spec]
-    [41]   Attribute   ::=    Name Eq AttValue
-    [42]   ETag   ::=   '</' Name S? '>' 
-    [43]   content   ::=    CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
-    [44]   EmptyElemTag   ::=   '<' Name (S Attribute)* S? '/>'[WFC: Unique Att Spec]
-    [45]   elementdecl   ::=   '<!ELEMENT' S Name S contentspec S? '>'
-    [46]   contentspec   ::=   'EMPTY' | 'ANY' | Mixed | children
-    [47]   children   ::=   (choice | seq) ('?' | '*' | '+')?
-    [48]   cp   ::=   (Name | choice | seq) ('?' | '*' | '+')?
-    [49]   choice   ::=   '(' S? cp ( S? '|' S? cp )+ S? ')'
-    [50]   seq   ::=   '(' S? cp ( S? ',' S? cp )* S? ')'
-    [51]   Mixed   ::=   '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' | '(' S? '#PCDATA' S? ')'
-    [52]   AttlistDecl   ::=   '<!ATTLIST' S Name AttDef* S? '>'
-    [53]   AttDef   ::=    S Name S AttType S DefaultDecl						
-    [54]   AttType   ::=    StringType | TokenizedType | EnumeratedType
-    [55]   StringType   ::=   'CDATA'
-    [56]   TokenizedType   ::=   'ID' | 'IDREF' | 'IDREFS' | 'ENTITY' | 'ENTITIES' | 'NMTOKEN' | 'NMTOKENS'
-    [57]   EnumeratedType   ::=    NotationType | Enumeration
-    [58]   NotationType   ::=   'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')' 
-    [59]   Enumeration   ::=   '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
-    [60]   DefaultDecl   ::=   '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
-    [61]   conditionalSect   ::=    includeSect | ignoreSect
-    [62]   includeSect   ::=   '<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'
-    [63]   ignoreSect   ::=   '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
-    [64]   ignoreSectContents   ::=    Ignore ('<![' ignoreSectContents ']]>' Ignore)*
-    [65]   Ignore   ::=    Char* - (Char* ('<![' | ']]>') Char*) 
-    [66]   CharRef   ::=   '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'[WFC: Legal Character]
-    [67]   Reference   ::=    EntityRef | CharRef
-    [68]   EntityRef   ::=   '&' Name ';'
-    [69]   PEReference   ::=   '%' Name ';'
-    [70]   EntityDecl   ::=    GEDecl | PEDecl 
-    [71]   GEDecl   ::=   '<!ENTITY' S Name S EntityDef S? '>'
-    [72]   PEDecl   ::=   '<!ENTITY' S '%' S Name S PEDef S? '>'
-    [73]   EntityDef   ::=    EntityValue | (ExternalID NDataDecl?)
-    [74]   PEDef   ::=    EntityValue | ExternalID							
-    [75]   ExternalID   ::=   'SYSTEM' S SystemLiteral | 'PUBLIC' S PubidLiteral S SystemLiteral
-    [76]   NDataDecl   ::=    S 'NDATA' S Name
-    [77]   TextDecl   ::=   '<?xml' VersionInfo? EncodingDecl S? '?>'
-    [78]   extParsedEnt   ::=    TextDecl? content
-    [79 missing with no explanation]
-    [80]   EncodingDecl   ::=    S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
-    [81]   EncName   ::=   [A-Za-z] ([A-Za-z0-9._] | '-')* (Encodingname contains only Latin characters)
-    [82]   NotationDecl   ::=   '<!NOTATION' S Name S (ExternalID | PublicID) S? '>'
-    [83]   PublicID   ::=   'PUBLIC' S PubidLiteral
-    [84]   Letter   ::=    BaseChar | Ideographic
-    [85]   BaseChar   ::=     [#x0041-#x005A] | [#x0061-#x007A] | [#x00C0-#x00D6]
+    document            ::=    prolog element Misc*
+    prolog              ::=    XMLDecl? Misc* (doctypedecl Misc*)?    
+    Char            ::=   #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]  (any Unicode character, excluding the surrogate blocks, FFFE, and FFFF)
+    S               ::=   (#x20 | #x9 | #xD | #xA)+
+    NameStartChar               ::=   ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+    NameChar            ::=   NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+    Name            ::=   NameStartChar (NameChar)*
+    Names               ::=   Name (#x20 Name)*
+    Nmtoken             ::=   (NameChar)+
+    Nmtokens            ::=   Nmtoken (#x20 Nmtoken)*
+    EntityValue             ::=   '"' ([^%&"] | PEReference | Reference)* '"' |  "'" ([^%&'] | PEReference | Reference)* "'"
+    AttValue            ::=   '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
+    SystemLiteral               ::=   ('"' [^"]* '"') | ("'" [^']* "'") 
+    PubidLiteral            ::=   '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
+    PubidChar               ::=   #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+    CharData            ::=   [^<&]* - ([^<&]* ']]>' [^<&]*)
+    Comment             ::=   '<!--' ((Char - '-') | ('-'(Char - '-')))* '-->'
+    PI              ::=   '<?' PITarget (S(Char* - (Char* '?>' Char*)))? '?>'
+    PITarget            ::=   Name - (('X' | 'x') ('M' |'m') ('L' | 'l'))
+    CDSect              ::=   CDStart CData CDEnd
+    CDStart             ::=   '<![CDATA['
+    CData               ::=   (Char* - (Char* ']]>' Char*))
+    CDEnd               ::=   ']]>'
+    XMLDecl             ::=   '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
+    VersionInfo             ::=    S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
+    Eq              ::=    S? '=' S?
+    VersionNum              ::=   '1.' [0-9]+
+    Misc            ::=    Comment | PI | S				
+    doctypedecl             ::=   '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'
+    DeclSep             ::=    PEReference | S [WFC: PE Between Declarations]
+    intSubset               ::=   (markupdecl | DeclSep)*
+    markupdecl              ::=    elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment 
+    extSubset               ::=    TextDecl? extSubsetDecl
+    extSubsetDecl               ::=   ( markupdecl | conditionalSect | DeclSep)*
+    SDDecl              ::=    S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"')) 
+    element             ::=    EmptyElemTag | STag content ETag
+    STag            ::=   '<' Name (S Attribute)* S? '>'[WFC: Unique Att Spec]
+    Attribute               ::=    Name Eq AttValue
+    ETag            ::=   '</' Name S? '>' 
+    content             ::=    CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
+    EmptyElemTag            ::=   '<' Name (S Attribute)* S? '/>'[WFC: Unique Att Spec]
+    elementdecl             ::=   '<!ELEMENT' S Name S contentspec S? '>'
+    contentspec             ::=   'EMPTY' | 'ANY' | Mixed | children
+    children            ::=   (choice | seq) ('?' | '*' | '+')?
+    cp              ::=   (Name | choice | seq) ('?' | '*' | '+')?
+    choice              ::=   '(' S? cp ( S? '|' S? cp )+ S? ')'
+    seq             ::=   '(' S? cp ( S? ',' S? cp )* S? ')'
+    Mixed               ::=   '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' | '(' S? '#PCDATA' S? ')'
+    AttlistDecl             ::=   '<!ATTLIST' S Name AttDef* S? '>'
+    AttDef              ::=    S Name S AttType S DefaultDecl						
+    AttType             ::=    StringType | TokenizedType | EnumeratedType
+    StringType              ::=   'CDATA'
+    TokenizedType               ::=   'ID' | 'IDREF' | 'IDREFS' | 'ENTITY' | 'ENTITIES' | 'NMTOKEN' | 'NMTOKENS'
+    EnumeratedType              ::=    NotationType | Enumeration
+    NotationType            ::=   'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')' 
+    Enumeration             ::=   '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
+    DefaultDecl             ::=   '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
+    conditionalSect             ::=    includeSect | ignoreSect
+    includeSect             ::=   '<![' S? 'INCLUDE' S? '[' extSubsetDecl ']]>'
+    ignoreSect              ::=   '<![' S? 'IGNORE' S? '[' ignoreSectContents* ']]>'
+    ignoreSectContents              ::=    Ignore ('<![' ignoreSectContents ']]>' Ignore)*
+    Ignore              ::=    Char* - (Char* ('<![' | ']]>') Char*) 
+    CharRef             ::=   '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'[WFC: Legal Character]
+    Reference               ::=    EntityRef | CharRef
+    EntityRef               ::=   '&' Name ';'
+    PEReference             ::=   '%' Name ';'
+    EntityDecl              ::=    GEDecl | PEDecl 
+    GEDecl              ::=   '<!ENTITY' S Name S EntityDef S? '>'
+    PEDecl              ::=   '<!ENTITY' S '%' S Name S PEDef S? '>'
+    EntityDef               ::=    EntityValue | (ExternalID NDataDecl?)
+    PEDef               ::=    EntityValue | ExternalID							
+    ExternalID              ::=   'SYSTEM' S SystemLiteral | 'PUBLIC' S PubidLiteral S SystemLiteral
+    NDataDecl               ::=    S 'NDATA' S Name
+    TextDecl            ::=   '<?xml' VersionInfo? EncodingDecl S? '?>'
+    extParsedEnt            ::=    TextDecl? content
+    EncodingDecl            ::=    S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
+    EncName             ::=   [A-Za-z] ([A-Za-z0-9._] | '-')* (Encodingname contains only Latin characters)
+    NotationDecl            ::=   '<!NOTATION' S Name S (ExternalID | PublicID) S? '>'
+    PublicID            ::=   'PUBLIC' S PubidLiteral
+    Letter              ::=    BaseChar | Ideographic
+    BaseChar            ::=     [#x0041-#x005A] | [#x0061-#x007A] | [#x00C0-#x00D6]
                             | [#x00D8-#x00F6] | [#x00F8-#x00FF] | [#x0100-#x0131] | [#x0134-#x013E]
                             | [#x0141-#x0148] | [#x014A-#x017E] | [#x0180-#x01C3] | [#x01CD-#x01F0]
                             | [#x01F4-#x01F5] | [#x01FA-#x0217] | [#x0250-#x02A8] | [#x02BB-#x02C1]
@@ -143,8 +142,8 @@ MODIFIED LIST
                             | [#x1FF2-#x1FF4] | [#x1FF6-#x1FFC] | #x2126 | [#x212A-#x212B]
                             | #x212E | [#x2180-#x2182] | [#x3041-#x3094] | [#x30A1-#x30FA]
                             | [#x3105-#x312C] | [#xAC00-#xD7A3] 
-    [86]   Ideographic   ::=   [#x4E00-#x9FA5] | #x3007 | [#x3021-#x3029]
-    [87]   CombiningChar   ::=    [#x0300-#x0345] | [#x0360-#x0361] | [#x0483-#x0486]
+    Ideographic   ::=   [#x4E00-#x9FA5] | #x3007 | [#x3021-#x3029]
+    CombiningChar   ::=    [#x0300-#x0345] | [#x0360-#x0361] | [#x0483-#x0486]
                                 | [#x0591-#x05A1] | [#x05A3-#x05B9] | [#x05BB-#x05BD] | #x05BF
                                 | [#x05C1-#x05C2] | #x05C4 | [#x064B-#x0652] | #x0670
                                 | [#x06D6-#x06DC] | [#x06DD-#x06DF] | [#x06E0-#x06E4] | [#x06E7-#x06E8]
@@ -168,11 +167,11 @@ MODIFIED LIST
                                 | #x0F97 | [#x0F99-#x0FAD] | [#x0FB1-#x0FB7] | #x0FB9
                                 | [#x20D0-#x20DC] | #x20E1 | [#x302A-#x302F] | #x3099
                                 | #x309A
-    [88]   Digit   ::=    [#x0030-#x0039] | [#x0660-#x0669] | [#x06F0-#x06F9]
+    Digit   ::=    [#x0030-#x0039] | [#x0660-#x0669] | [#x06F0-#x06F9]
                         | [#x0966-#x096F] | [#x09E6-#x09EF] | [#x0A66-#x0A6F] | [#x0AE6-#x0AEF]
                         | [#x0B66-#x0B6F] | [#x0BE7-#x0BEF] | [#x0C66-#x0C6F] | [#x0CE6-#x0CEF]
                         | [#x0D66-#x0D6F] | [#x0E50-#x0E59] | [#x0ED0-#x0ED9] | [#x0F20-#x0F29]
-    [89]   Extender   ::=   #x00B7 | #x02D0 | #x02D1 | #x0387 | #x0640
+    Extender   ::=   #x00B7 | #x02D0 | #x02D1 | #x0387 | #x0640
                     | #x0E46 | #x0EC6 | #x3005 | [#x3031-#x3035] | [#x309D-#x309E]
                     | [#x30FC-#x30FE] 
 
@@ -207,7 +206,8 @@ COPY LIST:
     [26]   VersionNum   ::=   '1.' [0-9]+
     [27]   Misc   ::=    Comment | PI | S				
     [28]   doctypedecl   ::=   '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'[VC: Root Element Type][WFC: External Subset]
-    [28a]   DeclSep   ::=    PEReference | S [WFC: PE Between Declarations][28b]   intSubset   ::=   (markupdecl | DeclSep)*
+    [28a]   DeclSep   ::=    PEReference | S [WFC: PE Between Declarations]
+    [28b]   intSubset   ::=   (markupdecl | DeclSep)*
     [29]   markupdecl   ::=    elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment [VC: Proper Declaration/PE Nesting][WFC: PEs in Internal Subset]
     [30]   extSubset   ::=    TextDecl? extSubsetDecl
     [31]   extSubsetDecl   ::=   ( markupdecl | conditionalSect | DeclSep)*
