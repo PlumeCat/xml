@@ -1,9 +1,9 @@
-#include "xml/xml.h"
+#include "xml.h"
 
 void pprint(const xml::Element& elem, int tab=1)
 {
     string ident(tab*4 - 1, ' ');
-    cout << ident << "element: ", elem.tag_name << endl;
+    cout << ident << "element: " << elem.tag_name << endl;
     
     for (auto& i: elem.attributes)
     {
@@ -22,22 +22,25 @@ void pprint(const xml::Element& elem, int tab=1)
 }
 
 
-t
-
-int main()
+template<typename Test>
+void unittest(const string& label, Test test)
 {
-    srand(time(nullptr));
-
+    cout << "RUNNING TEST: " << label << "...";
     try
     {
-        xml::Element root;
-        // xml::read("src/xml/test/books.xml", root);
-        xml::read("resource/assets.dae", root);
-        pprint(root);
+        test();
+        cout << "succeeded!" << endl;
     }
     catch (const exception& e)
     {
-        print("caught exception:", e.what());
+        cout << " failed: " << e.what() << endl;
     }
+}
 
+int main(int argc, char* argv[])
+{
+    for (int i = 0; i < argc; i++)
+    {
+        cout << "argument: " << argv[i] << endl;
+    }
 }
