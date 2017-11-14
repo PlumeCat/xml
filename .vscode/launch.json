@@ -17,7 +17,7 @@
             "environment": [],
             "MIMode": "lldb",
             "preLaunchTask": "OSX Build Debug",
-            "internalConsoleOptions": "openOnSessionStart",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -19,9 +20,9 @@ namespace util
         // clean tokens
         tokens.clear();
 
-        // current position and first whitespace position
-        int pos = 0;
-        int cpos = 0;
+        // skip to the first not-'c' character
+        int pos = str.find_first_not_of(string(1, c));
+        int cpos = pos;
         
         while (true)
         {
@@ -53,9 +54,9 @@ namespace util
         // clean tokens
         tokens.clear();
 
-        // current position, and first whitespace position
-        int pos = 0;
-        int wpos = 0;
+        // skip to the first not-in-"chars" character
+        int pos = str.find_first_not_of(chars);
+        int wpos = pos;
 
         while (true)
         {
