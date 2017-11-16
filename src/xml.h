@@ -10,11 +10,16 @@
 #include <algorithm>
 #include <stack>
 
-using namespace std;
+// definitions will be removed at the end of this header
+// just because std:: everywhere is damn unreadable >:(
+#define string  std::string
+#define vector  std::vector
+#define cout    std::cout
+#define endl    std::endl
 
 // utility for streaming a vector
 template<typename Type, typename Traits, typename Elem>
-basic_ostream<Type, Traits>& operator << (basic_ostream<Type, Traits>& stream, const vector<Elem>& vec)
+std::basic_ostream<Type, Traits>& operator << (std::basic_ostream<Type, Traits>& stream, const vector<Elem>& vec)
 {
     stream << "[";
     for (const auto& elem : vec)
@@ -99,9 +104,9 @@ namespace util
 
     void read_text_file(const string& fname, vector<string>& lines)
     {
-        ifstream file(fname);
+        std::ifstream file(fname);
         string line;
-        while (getline(file, line))
+        while (std::getline(file, line))
         {
             lines.push_back(line);
         }
@@ -125,8 +130,15 @@ namespace xml
 {
     struct Document
     {
-        Element root;
-    }
+    };
+    struct Prolog
+    {
+
+    };
+    struct DocTypeDecl
+    {
+
+    };
     struct Element
     {
         string tag_name = "";
@@ -135,6 +147,27 @@ namespace xml
         vector<string> attributes;
         vector<Element> children;
     };
+
+    void pprint(const Element& elem, int tab=1)
+    {
+        string ident(tab*4 - 1, ' ');
+        cout << ident << "element: " << elem.tag_name << endl;
+        
+        for (auto& i: elem.attributes)
+        {
+            cout << ident << "    attr: " << i << endl;
+        }
+
+        for (auto& t : elem.text)
+        {
+            cout << ident << "    text: " << t << endl;
+        }
+
+        for (auto& c: elem.children)
+        {
+            pprint(c, tab+1);
+        }
+    }
 
     /*
         the following characters must be escaped
@@ -145,28 +178,195 @@ namespace xml
             &   &amp;
     */
 
-    bool is_whitespace(const string::iterator& it)
+    bool parse_document(const string& source, Document& document)
     {
-        const string whitespace = " \r\n\t";
-        return find(whitespace.begin(), whitespace.end(), *it) != whitespace.end();
-    }
-    string::iterator read_whitespace(const string::iterator& begin, const string::iterator& end)
-    {
-        for (auto it = begin; is_whitespace(it) && it < end; it++);
     }
 
-    void read(const string& fname, Element& root)
+    bool read(const string& fname, Document& document)
     {
         string source = util::read_text_file(fname);
-
         // TODO: source = process(source)
         // where "process" will check for utf8 / etc and map anything above xFF to "unprintable"
-        
-        int pos = 0;
-        pos = read_decl(pos, source, root);
-        pos = read_element(pos, source, root);
+
+        return parse_document(source, document);
     }
 
+
+    bool read_postcode()
+    {
+
+    }
+
+};
+
+namespace parse
+{
+    struct AstNode
+    {
+        vector<AstNode> children;
+    };
+
+    namespace rule
+    {
+        // Char literal construct
+        // Must match any one of the characters in the given string
+        struct chr
+        {
+            chr(const string& str) {}
+            bool parse(const string&) { return true; }
+        };
+        
+        // String literal construct
+        // Must match all of the input string
+        struct str
+        {
+            str(const string& str) {}
+            bool parse(const string&) { return true; }
+        };
+
+        // Not construct
+        // Match Include but not Exclude
+        template<typename Inc, typename Exc>
+        struct rem
+        {
+            rem(const Inc& inc, const Exc& exc) { }
+            bool parse(const string&) { /* return inc.parse() && !exc.parse(); */ return true; }
+        };
+
+        // Optional construct
+        template<typename Parseable>
+        struct opt
+        {
+            opt(const Parseable& parse) { }
+            bool parse(const string&) { return true; }
+        };
+
+        // Repeated construct (one-or-more)
+        // You can use Opt(Rpt(...)) to represent zero-or-more
+        template<typename Parseable>
+        struct rpt
+        {
+            rpt(const Parseable& parse) {}
+            bool parse(const string&) { return true; }
+        };
+
+        // Sequence of constructs (a series of parseables; all must match)
+        template<typename Parseable, typename ...Rest>
+        struct seq
+        {
+            seq(const Parseable& parseable, const Rest& ...rest) {}
+            bool parse(const string& str) { /* return first.parse() || Alt(rest).parse(); */ return true; }
+        };
+        template<typename Parseable>
+        struct seq<Parseable>
+        {
+            seq(const Parseable& first) {}
+            bool parse(const string& str) { /* return first.parse() && Seq(rest).parse(); */ return true; }
+        };
+
+
+
+        // Series of alternates
+        template<typename Parseable, typename ...Rest>
+        struct alt 
+        {
+            alt(const Parseable& first, const Rest& ...rest) { }
+            bool parse(const string& str) { /* return first.parse() || Alt(rest).parse(); */ return true; }
+        };
+        template<typename Parseable>
+        struct alt<Parseable>
+        {
+            alt(const Parseable& parseable) {}
+            bool parse(const string& str) { return true; }
+        };
+    }
+
+
+    rule::chr chr(const string& str) { return rule::chr(str); }
+    rule::str str(const string& str) { return rule::str(str); }
+    template<typename T>
+    rule::opt<T> opt(const T& t) { return rule::opt<T>(t); }
+    template<typename Inc, typename Exc>
+    rule::rem<Inc, Exc> rem(const Inc& inc, const Exc& exc) { return rule::rem<Inc, Exc>(inc, exc); }
+    template<typename T>
+    rule::rpt<T> rpt(const T& t) { return rule::rpt<T>(t); }
+    template<typename T1, typename ...Tn>
+    rule::seq<T1, Tn...> seq(const T1& t1, const Tn& ...tn) { return rule::seq<T1, Tn...>(t1, tn...); }
+    template<typename T1, typename ...Tn>
+    rule::alt<T1, Tn...> alt(const T1& t1, const Tn& ...tn) { return rule::alt<T1, Tn...>(t1, tn...); }
+
+    const string alphabetUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const string alphabetLower = "abcdefghijklmnopqrstuvwxyz";
+    const string alphabet = alphabetUpper + alphabetLower;
+    const string digits = "0123456789";
+
+    void parse_pascal()
+    {
+        /*
+        
+        a simple program syntax in EBNF − Wikipedia
+            
+            program = 'PROGRAM', white space, 
+                        identifier, white space, 
+                        'BEGIN', white space, 
+                        { 
+                            assignment, ";", white space
+                        }, 
+                        'END.' ;
+            identifier = alphabetic character, { alphabetic character | digit } ;
+            number = [ "-" ], digit, { digit } ;
+            string = '"' , { all characters - '"' }, '"' ;
+            assignment = identifier , ":=" , ( number | identifier | string ) ;
+            alphabetic character = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+                                | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+                                | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+                                | "V" | "W" | "X" | "Y" | "Z" ;
+            digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+            white space = ? white space characters ? ;
+            all characters = ? all visible characters ? ;
+
+        A syntactically correct program then would be:
+
+            PROGRAM DEMO1
+            BEGIN
+                A:=3;
+                B:=45;
+                H:=-100023;
+                C:=A;
+                D123:=B34A;
+                BABOON:=GIRAFFE;
+                TEXT:="Hello world!";
+            END
+
+        */
+        
+        auto whitespace = rpt(chr(" \r\n\t"));
+        auto identifier = seq(chr(alphabet), alt(chr(alphabet), chr(digits)));
+        auto number = rpt(chr(digits));
+        auto string_ = rpt(seq(chr("\""), rpt(chr(alphabet + digits)), chr("\"")));
+        auto assignment = seq(identifier, str(":="), alt(identifier, string_, number));
+        auto program_grammar = seq(
+            str("PROGRAM"), whitespace,
+            identifier, whitespace,
+            str("BEGIN"), whitespace,
+            rpt(
+                seq(assignment, str(";"), whitespace)
+            ),
+            str("END")
+        );
+
+        auto example_program = 
+            "PROGRAM DEMO1"
+            "BEGIN"
+                "A:=3;"
+                "B:=45;"
+                "H:=-100023;"
+                "C:=A;"
+                "D123:=B34A;"
+                "BABOON:=GIRAFFE;"
+                "TEXT:=\"Hello world!\";"
+            "END";
+    }
 };
 
 #endif
@@ -270,26 +470,9 @@ Character and entity references
 
 */
 
-namespace util
-{
-    void pprint(const xml::Element& elem, int tab=1)
-    {
-        string ident(tab*4 - 1, ' ');
-        cout << ident << "element: " << elem.tag_name << endl;
-        
-        for (auto& i: elem.attributes)
-        {
-            cout << ident << "    attr: " << i << endl;
-        }
 
-        for (auto& t : elem.text)
-        {
-            cout << ident << "    text: " << t << endl;
-        }
 
-        for (auto& c: elem.children)
-        {
-            pprint(c, tab+1);
-        }
-    }
-};
+#undef string
+#undef vector
+#undef cout
+#undef endl

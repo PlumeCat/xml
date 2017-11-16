@@ -1,5 +1,7 @@
 #include "xml.h"
 
+using namespace std;
+
 
 template<typename Test>
 void unittest(const string& label, Test test)

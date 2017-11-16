@@ -84,8 +84,8 @@ MODIFIED LIST
     ELEMENT
 
         element             ::=    EmptyElemTag | STag content ETag
-            EmptyElemTag        ::=   '<' Name (S Attribute)* S? '/>'[WFC: Unique Att Spec]
-            STag                ::=   '<' Name (S Attribute)* S? '>'[WFC: Unique Att Spec]
+            EmptyElemTag        ::=   '<' Name (S Attribute)* S? '/>'
+            STag                ::=   '<' Name (S Attribute)* S? '>'
             Attribute           ::=    Name Eq AttValue
             ETag                ::=   '</' Name S? '>'
             content             ::=    CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
@@ -97,15 +97,18 @@ MODIFIED LIST
 
     COMMON
 
+        Eq                  ::=    S? '=' S?
+        
         AttValue            ::=   '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
         PubidLiteral        ::=   '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
             PubidChar           ::=   #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+        
         Comment             ::=   '<!--' ((Char - '-') | ('-'(Char - '-')))* '-->'
         PI                  ::=   '<?' PITarget (S(Char* - (Char* '?>' Char*)))? '?>'
-        PITarget            ::=   Name - (('X' | 'x') ('M' |'m') ('L' | 'l'))
-        Eq                  ::=    S? '=' S?
+            PITarget            ::=   Name - (('X' | 'x') ('M' |'m') ('L' | 'l'))
+        
         Reference           ::=    EntityRef | CharRef
-            CharRef             ::=   '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'[WFC: Legal Character]
+            CharRef             ::=   '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
             EntityRef           ::=   '&' Name ';'
         PEReference         ::=   '%' Name ';'
         ExternalID          ::=   'SYSTEM' S SystemLiteral | 'PUBLIC' S PubidLiteral S SystemLiteral
@@ -208,9 +211,7 @@ MODIFIED LIST
                                 | [#x0966-#x096F] | [#x09E6-#x09EF] | [#x0A66-#x0A6F] | [#x0AE6-#x0AEF]
                                 | [#x0B66-#x0B6F] | [#x0BE7-#x0BEF] | [#x0C66-#x0C6F] | [#x0CE6-#x0CEF]
                                 | [#x0D66-#x0D6F] | [#x0E50-#x0E59] | [#x0ED0-#x0ED9] | [#x0F20-#x0F29]
-        Extender            ::=   #x00B7 | #x02D0 | #x02D1 | #x0387 | #x0640
-                                | #x0E46 | #x0EC6 | #x3005 | [#x3031-#x3035] | [#x309D-#x309E]
-                                | [#x30FC-#x30FE]
+        Extender            ::=   #x00B7 | #x02D0 | #x02D1 | #x0387 | #x0640 | #x0E46 | #x0EC6 | #x3005 | [#x3031-#x3035] | [#x309D-#x309E] | [#x30FC-#x30FE]
 
 
 KEY:
@@ -244,8 +245,3 @@ KEY:
 
 
 */
-
-namespace xml
-{
-
-}
