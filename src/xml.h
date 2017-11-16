@@ -10,6 +10,18 @@
 #include <algorithm>
 #include <stack>
 
+using namespace std;
+
+namespace xml
+{
+    struct Element
+    {
+
+    };
+};
+
+#ifdef 0
+
 // definitions will be removed at the end of this header
 // just because std:: everywhere is damn unreadable >:(
 #define string  std::string
@@ -201,8 +213,77 @@ namespace xml
 
 namespace parse
 {
+    namespace rule {};
+
+    struct Context final
+    {
+    private:
+        string sourcecode;
+        uint pos;
+        uint line;
+        uint column;
+        
+        // advance "pos" by n
+        // update "line" and "column" accordingly
+        // returns the number of characters advanced
+        uint advance(uint n)
+        {
+            for (uint i = 0; i < n; i++)
+            {
+                if (pos+1 >= sourcecode.length())
+                {
+                    return i;
+                }
+
+                pos++;
+                column++;
+                if (sourcecode[pos-1] == '\n')
+                {
+                    line++;
+                    column = 0;
+                }
+            }
+
+            return n;
+        }
+    
+    public:
+        Context(const string& source)
+        {
+            pos = 0;
+            line = 0;
+            column = 0;
+            sourcecode = source;
+        }
+        Context(const Context&) = delete;
+        Context(Context&&) = delete;
+        Context& operator = (const Context&) = delete;
+        Context& operator = (Context&&) = delete;
+        ~Context() {}
+
+        uint pos() { return pos; }
+        uint lineno() { return line; }
+        uint colno() { return column; }
+
+        char peek() const
+        {
+            return sourcecode[pos];
+        }
+        string peek(uint n) const
+        {
+        }
+        char next()
+        {
+            if (advance(1) == 0) { return 0; }
+            return sourcecode[pos-1];
+        }
+        string next(uint n)
+        {
+        }
+    };
     struct AstNode
     {
+        string value;
         vector<AstNode> children;
     };
 
@@ -212,16 +293,37 @@ namespace parse
         // Must match any one of the characters in the given string
         struct chr
         {
-            chr(const string& str) {}
-            bool parse(const string&) { return true; }
+            string chars;
+            chr(const string& str) : chars(str) {}
+            AstNode* parse(Context& context)
+            {
+                if (chars.find(context.peek()) != string::npos)
+                {
+                    AstNode node;
+                    node.value = context.next();
+                    parent.children.push_back(node);
+                    return true;
+                }
+                return false;
+            }
         };
         
         // String literal construct
         // Must match all of the input string
         struct str
         {
-            str(const string& str) {}
-            bool parse(const string&) { return true; }
+            string literal;
+            str(const string& str) : literal(str) {}
+            AstNode* parse(Context& context)
+            {
+                if (literal == context.peek(literal.length()))
+                {
+                    auto node = new AstNode;
+                    node->value = context.next(literal.length());
+                    return node;
+                }
+                return nullptr;
+            }
         };
 
         // Not construct
@@ -230,15 +332,23 @@ namespace parse
         struct rem
         {
             rem(const Inc& inc, const Exc& exc) { }
-            bool parse(const string&) { /* return inc.parse() && !exc.parse(); */ return true; }
+            AstNode* parse(Context& context)
+            {
+                // rem is tricky because we have to parse then not-parse
+                
+                // just this once, we'll create a copy of Context
+                Context copycontext(context.sourcecode); copycontext.advance(context.pos());
+
+            }
         };
 
         // Optional construct
         template<typename Parseable>
         struct opt
         {
+            Parseable type;
             opt(const Parseable& parse) { }
-            bool parse(const string&) { return true; }
+            AstNode* parse(Context& context) { return true; }
         };
 
         // Repeated construct (one-or-more)
@@ -247,7 +357,7 @@ namespace parse
         struct rpt
         {
             rpt(const Parseable& parse) {}
-            bool parse(const string&) { return true; }
+            AstNode* parse(Context& context) { return true; }
         };
 
         // Sequence of constructs (a series of parseables; all must match)
@@ -255,13 +365,13 @@ namespace parse
         struct seq
         {
             seq(const Parseable& parseable, const Rest& ...rest) {}
-            bool parse(const string& str) { /* return first.parse() || Alt(rest).parse(); */ return true; }
+            AstNode* parse(Context& context) { /* return first.parse() || Alt(rest).parse(); */ return true; }
         };
         template<typename Parseable>
         struct seq<Parseable>
         {
             seq(const Parseable& first) {}
-            bool parse(const string& str) { /* return first.parse() && Seq(rest).parse(); */ return true; }
+            AstNode* parse(Context& context) { /* return first.parse() && Seq(rest).parse(); */ return true; }
         };
 
 
@@ -271,13 +381,13 @@ namespace parse
         struct alt 
         {
             alt(const Parseable& first, const Rest& ...rest) { }
-            bool parse(const string& str) { /* return first.parse() || Alt(rest).parse(); */ return true; }
+            bool parse(const string& str, AstNode& parent) { /* return first.parse() || Alt(rest).parse(); */ return true; }
         };
         template<typename Parseable>
         struct alt<Parseable>
         {
             alt(const Parseable& parseable) {}
-            bool parse(const string& str) { return true; }
+            bool parse(const string& str, AstNode& parent) { return true; }
         };
     }
 
@@ -300,7 +410,7 @@ namespace parse
     const string alphabet = alphabetUpper + alphabetLower;
     const string digits = "0123456789";
 
-    void parse_pascal()
+    void parse_pascalish()
     {
         /*
         
@@ -338,6 +448,53 @@ namespace parse
                 TEXT:="Hello world!";
             END
 
+        after parsing, we get a basic AST that looks like this
+
+            seq
+                str "PROGRAM"
+                whitespace
+                identifier "DEMO1"
+                whitespace
+                str "BEGIN"
+                whitespace
+                rpt
+                    seq
+                        seq
+                            identifier "A", str ":=", number 3
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "B", str ":=", number 45
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "H", str ":=", number -100023
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "C", str ":=", identifier "A"
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "D123", str ":=", identifier "B34A"
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "BABOON", str ":=", identifier "GIRAFFE"
+                        str ";"
+                        whitespace
+                    seq
+                        seq
+                            identifier "TEXT", str ":=", string("Hello world!")
+                        str ";"
+                        whitespace
+                str "END"
+
         */
         
         auto whitespace = rpt(chr(" \r\n\t"));
@@ -355,7 +512,7 @@ namespace parse
             str("END")
         );
 
-        auto example_program = 
+        string example_program = 
             "PROGRAM DEMO1"
             "BEGIN"
                 "A:=3;"
@@ -366,113 +523,16 @@ namespace parse
                 "BABOON:=GIRAFFE;"
                 "TEXT:=\"Hello world!\";"
             "END";
+
+        AstNode program;
+        Context context(example_program);
+        if (program_grammar.parse(context, program))
+        {
+
+        }
     }
 };
 
 #endif
 
-
-/*
-We don't currently support
-    - entity declarations   "<!ENTITY ... >"
-    - conditionals          "<![ ... ]]>"
-*/
-
-/*
-Xml Document
-
-Document, Prolog and doctype
-    [1]     document            ::=      prolog element Misc*
-    [22]    prolog              ::=      XMLDecl? Misc* (doctypedecl Misc*)?
-        [23]    XMLDecl             ::=      '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
-        [32]    SDDecl              ::=      S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
-        [28]    doctypedecl         ::=      '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'
-    [24]    VersionInfo         ::=      S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
-    [25]    Eq                  ::=      S? '=' S?
-        [26]    VersionNum          ::=      '1.' [0-9]+
-        [27]    Misc                ::=      Comment | PI | S
-    [28b]   intSubset           ::=      (markupdecl | DeclSep)*
-    [28a]   DeclSep             ::=      PEReference | S
-        [69]    PEReference         ::=      '%' Name ';'
-    [29]    markupdecl          ::=      elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment
-
-
-Chars and Whitespace
-    [2]     Char                ::=      #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-                                            any unicode char except "surrogate blocks", FFFE, FFFF
-    [3]     S                   ::=      (#x20 | #x9 | #xD | #xA)+
-                                            whitespace: ' ', '\r', '\n', '\t'
-
-Names and Tokens
-    [5]     Name                ::=      NameStartChar (NameChar)*
-        [4]     NameStartChar       ::=      ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
-        [4a]    NameChar            ::=      NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
-        [6]     ?? Names               ::=      Name (#x20 Name)*
-    [7]     Nmtoken             ::=      (NameChar)+
-        [8]     ?? Nmtokens            ::=      Nmtoken (#x20 Nmtoken)*
-
-Comment, Processing instructions
-    [15]    Comment             ::=      '<!--' (   (Char - '-') |  ('-' (Char - '-')   ))* '-->'
-                                         '<!--' followed by multiple "Char" (with no instance of '--', also first char must not be '-'), then '-->'
-    [16]    PI                  ::=      '<?' PITarget (  S (   Char* - (Char* '?>' Char*)   )  )? '?>'
-                                         '<?' + PITarget +  + '?>'
-        [17]    PITarget            ::=      Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
-
-
-Element
-    [39]    element             ::=      EmptyElemTag | STag content ETag
-    [43]    content             ::=      CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
-        [40]    STag                ::=      '<' Name (S Attribute)* S? '>'
-        [14]    CharData            ::=      [^<&]* - ([^<&]* ']]>' [^<&]*)
-        [42]    ETag                ::=      '</' Name S? '>'
-        [44]    EmptyElemTag        ::=      '<' Name (S Attribute)* S? '/>'
-            [41]    Attribute           ::=      Name Eq AttValue
-            [10]    AttValue            ::=      '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
-
-        [18]    CDSect     ::=      CDStart CData CDEnd
-            [19]    CDStart    ::=      '<![CDATA['
-            [20]    CData      ::=      (Char* - (Char* ']]>' Char*))
-            [21]    CDEnd      ::=      ']]>'
-
-
-Element declarations
-    [45]    elementdecl         ::=      '<!ELEMENT' S Name S contentspec S? '>'
-        [46]    contentspec         ::=      'EMPTY' | 'ANY' | Mixed | children
-        [47]    children            ::=      (choice | seq) ('?' | '*' | '+')?
-        [49]    choice              ::=      '(' S? cp ( S? '|' S? cp )+ S? ')'  [VC: Proper Group/PE Nesting]
-        [50]    seq                 ::=      '(' S? cp ( S? ',' S? cp )* S? ')'  [VC: Proper Group/PE Nesting]
-        [48]    cp                  ::=      (Name | choice | seq) ('?' | '*' | '+')?
-        [51]    Mixed               ::=      '(' S? '#PCDATA' (S? '|' S? Name)* S? ')*' | '(' S? '#PCDATA' S? ')'
-    [52]    AttlistDecl         ::=      '<!ATTLIST' S Name AttDef* S? '>'
-        [53]    AttDef              ::=      S Name S AttType S DefaultDecl
-            [54]    AttType             ::=      StringType | TokenizedType | EnumeratedType
-                [55]    StringType          ::=      'CDATA'
-                [56]    TokenizedType       ::=      'ID' | 'IDREF' | 'IDREFS' | 'ENTITY' | 'ENTITIES' | 'NMTOKEN' | 'NMTOKENS'
-                [57]    EnumeratedType      ::=      NotationType | Enumeration
-                    [58]    NotationType        ::=      'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
-                    [59]    Enumeration         ::=      '(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'
-            [60]    DefaultDecl         ::=      '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)?
-
-Character and entity references
-
-    [67]    Reference           ::=      EntityRef | CharRef
-        [66]    CharRef             ::=      '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
-        [68]    EntityRef           ::=      '&' Name ';'
-
-    [75]    ExternalID          ::=      'SYSTEM' S SystemLiteral | 'PUBLIC' S PubidLiteral S SystemLiteral
-    [80]    EncodingDecl        ::=      S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
-        [81]    EncName             ::=      [A-Za-z] ([A-Za-z0-9._] | '-')*
-    [82]    NotationDecl        ::=      '<!NOTATION' S Name S (ExternalID | PublicID) S? '>'
-        [83]    PublicID            ::=      'PUBLIC' S PubidLiteral
-        [12]    PubidLiteral        ::=      '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
-        [13]    PubidChar           ::=      #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-        [11]    SystemLiteral       ::=      ('"' [^"]* '"') | ("'" [^']* "'")
-
-*/
-
-
-
-#undef string
-#undef vector
-#undef cout
-#undef endl
+#endif

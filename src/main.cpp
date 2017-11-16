@@ -110,4 +110,5 @@ int main(int argc, char* argv[])
     }
 
     test_split();
+    parse::parse_pascalish();
 }
