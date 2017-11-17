@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "__locale": "cpp",
+        "string": "cpp",
+        "__bit_reference": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "deque": "cpp",
+        "initializer_list": "cpp",
+        "ios": "cpp",
+        "iterator": "cpp",
+        "map": "cpp",
+        "vector": "cpp",
+        "stdexcept": "cpp"
+    }
+}

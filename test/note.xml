@@ -4,5 +4,10 @@
     <to foo="bar">Me</to>
     <from>You</from>
     <heading>Reminder</heading>
-    <body>Don't forget me this weekend!</body>
+    <body>
+        Don't forget <b>me</b> this weekend!
+        <body>
+        or I shall be <i>unhappy</i>
+        </body>
+    </body>
 </note>

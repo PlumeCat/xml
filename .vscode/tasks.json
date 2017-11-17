@@ -13,10 +13,8 @@
                 "\"", // quote the entire command
                 
                     // clean 
-                    "rm", "-r", "build/debug",
-                    "&&",
-                    "mkdir", "build/debug",
-                    "&&",
+                    "rm -r build/debug &&",
+                    "mkdir build/debug &&",
                     
                     "clang++",
                         "src/main.cpp",
@@ -29,8 +27,8 @@
                         "-g",
                         
                         "-I/user/local/include",
-                        "-fms-extensions",
                         "-L/usr/local/lib",
+                        "-fms-extensions",
 
                 "\"" // end quote
             ]

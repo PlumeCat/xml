@@ -109,6 +109,18 @@ int main(int argc, char* argv[])
         cout << "argument: " << argv[i] << endl;
     }
 
-    test_split();
-    parse::parse_pascalish();
+    // test_split();
+
+    xml::Element document;
+    try
+    {
+        xml::load("test/note.xml", document);
+        xml::pprint(document);
+    }
+    catch (const exception& e)
+    {
+        cout << "ERROR: " << e.what() << endl;
+    }
+
+    // parse::parse_pascalish();
 }

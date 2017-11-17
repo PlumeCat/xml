@@ -51,7 +51,22 @@ MODIFIED LIST
             // Nmtokens            ::=   Nmtoken (#x20 Nmtoken)*
 
 
-    MARKUP
+    ELEMENT
+
+        element             ::=    EmptyElemTag | STag content ETag
+            EmptyElemTag        ::=   '<' Name (S Attribute)* S? '/>'
+            STag                ::=   '<' Name (S Attribute)* S? '>'
+            Attribute           ::=    Name Eq AttValue
+            ETag                ::=   '</' Name S? '>'
+            content             ::=    CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
+                CharData            ::=   [^<&]* - ([^<&]* ']]>' [^<&]*)
+                CDSect              ::=   CDStart CData CDEnd
+                    CDStart             ::=   '<![CDATA['
+                    CData               ::=   (Char* - (Char* ']]>' Char*))
+                    CDEnd               ::=   ']]>'
+    
+    
+    MARKUP DECL
 
         markupdecl          ::=    elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment
             elementdecl         ::=   '<!ELEMENT' S Name S contentspec S? '>'
@@ -79,21 +94,6 @@ MODIFIED LIST
                         EntityValue         ::=   '"' ([^%&"] | PEReference | Reference)* '"' |  "'" ([^%&'] | PEReference | Reference)* "'"
             NotationDecl        ::=   '<!NOTATION' S Name S (ExternalID | PublicID) S? '>'
                 PublicID            ::=   'PUBLIC' S PubidLiteral
-
-
-    ELEMENT
-
-        element             ::=    EmptyElemTag | STag content ETag
-            EmptyElemTag        ::=   '<' Name (S Attribute)* S? '/>'
-            STag                ::=   '<' Name (S Attribute)* S? '>'
-            Attribute           ::=    Name Eq AttValue
-            ETag                ::=   '</' Name S? '>'
-            content             ::=    CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
-                CharData            ::=   [^<&]* - ([^<&]* ']]>' [^<&]*)
-                CDSect              ::=   CDStart CData CDEnd
-                    CDStart             ::=   '<![CDATA['
-                    CData               ::=   (Char* - (Char* ']]>' Char*))
-                    CDEnd               ::=   ']]>'
 
     COMMON
 
