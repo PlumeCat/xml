@@ -15,12 +15,12 @@ Modified list
 MODIFIED LIST
 
     XML DOCUMENT
-    
+
         document            ::=    prolog element Misc*
 
 
     XML PROLOG
-    
+
         prolog           ::=    XMLDecl? Misc* (doctypedecl Misc*)?
             XMLDecl             ::=   '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
                 EncodingDecl        ::=    S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
@@ -64,8 +64,8 @@ MODIFIED LIST
                     CDStart             ::=   '<![CDATA['
                     CData               ::=   (Char* - (Char* ']]>' Char*))
                     CDEnd               ::=   ']]>'
-    
-    
+
+
     MARKUP DECL
 
         markupdecl          ::=    elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment
@@ -98,15 +98,15 @@ MODIFIED LIST
     COMMON
 
         Eq                  ::=    S? '=' S?
-        
+
         AttValue            ::=   '"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
         PubidLiteral        ::=   '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
             PubidChar           ::=   #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-        
+
         Comment             ::=   '<!--' ((Char - '-') | ('-'(Char - '-')))* '-->'
         PI                  ::=   '<?' PITarget (S(Char* - (Char* '?>' Char*)))? '?>'
             PITarget            ::=   Name - (('X' | 'x') ('M' |'m') ('L' | 'l'))
-        
+
         Reference           ::=    EntityRef | CharRef
             CharRef             ::=   '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
             EntityRef           ::=   '&' Name ';'
@@ -114,7 +114,7 @@ MODIFIED LIST
         ExternalID          ::=   'SYSTEM' S SystemLiteral | 'PUBLIC' S PubidLiteral S SystemLiteral
             SystemLiteral       ::=   ('"' [^"]* '"') | ("'" [^']* "'")
 
-    
+
     APPENDIX 1: Unused stuff
 
         // extSubset           ::=    TextDecl? extSubsetDecl

@@ -36,7 +36,7 @@ namespace util
         // skip to the first not-'c' character
         int pos = str.find_first_not_of(string(1, c));
         int cpos = pos;
-        
+
         while (true)
         {
             // find the first instance of 'c'
@@ -83,7 +83,7 @@ namespace util
                 }
                 break;
             }
-            
+
             // push the current token
             tokens.push_back(str.substr(pos, wpos-pos));
 
@@ -135,7 +135,7 @@ namespace xml
     {
         string ident(tab*4, ' ');
         cout << ident << "element: " << elem.tag << endl;
-        
+
         for (auto& i: elem.attributes)
         {
             cout << ident << "  - attr: " << i.first << " = " << i.second << endl;
@@ -149,6 +149,17 @@ namespace xml
         for (auto& c: elem.children)
         {
             pprint(c, tab+1);
+        }
+    }
+
+    void pprint_s(const Element& elem, int tab=1)
+    {
+        string ident(tab*4, ' ');
+        cout << ident << "element: " << elem.tag << endl;
+
+        for (auto& i : elem.children)
+        {
+            pprint(i, tab+1);
         }
     }
 
@@ -182,6 +193,38 @@ namespace xml
             return search(start, end, str.begin(), str.end());
         }
 
+        stringit read_attributes(const stringit& start, const stringit& end, Element& elem)
+        {
+            auto pos = start;
+            while (true)
+            {
+                // scoot to the start of the next attribute
+                pos = read_whitespace(pos, end);
+                if (pos >= end)
+                    break;
+
+                // read an attribute key
+                auto key_start = pos;
+                auto key_end = read_until(key_start, end, '=');
+                if (key_end == end)
+                    throw runtime_error("malformed attribute: " + string(pos, pos+20));
+
+                // read an attribute value
+                auto val_start = key_end + 1;
+                char quotechar = *val_start;
+                if (quotechar != '"' && quotechar != '\'')
+                    throw runtime_error("malformed attribute: " + string(pos, pos+20));
+                auto val_end = read_until(val_start+1, end, quotechar);
+                if (val_end == end)
+                    throw runtime_error("malformed attribute: " + string(pos, pos+20));
+
+                // add to the element's attribute list
+                elem.attributes[string(key_start, key_end)] = string(val_start+1, val_end);
+
+                pos = val_end + 1;
+            }
+        }
+
         stringit read_element(const stringit& start, const stringit& end, Element& elem)
         {
             // find the end of the opening tag
@@ -191,7 +234,7 @@ namespace xml
                 throw runtime_error("ill formed start tag: " + string(start_tag_start, start_tag_start+20));
             bool selfclosed = (*(start_tag_end-1) == '/');
             start_tag_end -= selfclosed ? 1 : 0;
-            
+
 
             // extract the tag name
             auto namestart = start_tag_start + 1;
@@ -199,10 +242,10 @@ namespace xml
             elem.tag = string(namestart, nameend);
 
 
-            // TODO: parse attributes between nameend and start_tag_end
+            // parse attributes
             auto attrs_start = nameend;
             auto attrs_end = start_tag_end;
-            
+            read_attributes(attrs_start, start_tag_end, elem);
 
             // if it's a self-closed element, we're done
             if (selfclosed)
@@ -239,7 +282,7 @@ namespace xml
                     auto text_end = read_until(pos, end, '<');
                     if (text_end == end)
                         throw runtime_error("could not find end of text content ('<' for end-tag or a child element start-tag)");
-                    
+
                     elem.text.push_back(string(pos, text_end));
                     pos = text_end;
                 }
@@ -257,7 +300,7 @@ namespace xml
         {
             throw runtime_error("could not open file " + fname);
         }
-        
+
         stringit it = source.begin();
 
         // check for XML-declaration
@@ -279,7 +322,7 @@ namespace xml
         {
             throw runtime_error("could not find root element");
         }
-        
+
         // read the root element
         Element root;
         read_element(it, source.end(), root);
@@ -302,7 +345,7 @@ namespace parse
         uint pos;
         uint line;
         uint column;
-        
+
         // advance "pos" by n
         // update "line" and "column" accordingly
         // returns the number of characters advanced
@@ -326,7 +369,7 @@ namespace parse
 
             return n;
         }
-    
+
     public:
         Context(const string& source)
         {
@@ -387,7 +430,7 @@ namespace parse
                 return false;
             }
         };
-        
+
         // String literal construct
         // Must match all of the input string
         struct str
@@ -415,7 +458,7 @@ namespace parse
             AstNode* parse(Context& context)
             {
                 // rem is tricky because we have to parse then not-parse
-                
+
                 // just this once, we'll create a copy of Context
                 Context copycontext(context.sourcecode); copycontext.advance(context.pos());
 
@@ -458,7 +501,7 @@ namespace parse
 
         // Series of alternates
         template<typename Parseable, typename ...Rest>
-        struct alt 
+        struct alt
         {
             alt(const Parseable& first, const Rest& ...rest) { }
             bool parse(const string& str, AstNode& parent) { /* return first.parse() || Alt(rest).parse(); */ return true; }
@@ -493,15 +536,15 @@ namespace parse
     void parse_pascalish()
     {
         /*
-        
+
         a simple program syntax in EBNF − Wikipedia
-            
-            program = 'PROGRAM', white space, 
-                        identifier, white space, 
-                        'BEGIN', white space, 
-                        { 
+
+            program = 'PROGRAM', white space,
+                        identifier, white space,
+                        'BEGIN', white space,
+                        {
                             assignment, ";", white space
-                        }, 
+                        },
                         'END.' ;
             identifier = alphabetic character, { alphabetic character | digit } ;
             number = [ "-" ], digit, { digit } ;
@@ -576,7 +619,7 @@ namespace parse
                 str "END"
 
         */
-        
+
         auto whitespace = rpt(chr(" \r\n\t"));
         auto identifier = seq(chr(alphabet), alt(chr(alphabet), chr(digits)));
         auto number = rpt(chr(digits));
@@ -592,7 +635,7 @@ namespace parse
             str("END")
         );
 
-        string example_program = 
+        string example_program =
             "PROGRAM DEMO1"
             "BEGIN"
                 "A:=3;"

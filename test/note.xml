@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <note>
     <selfclosed foo="bar"/>
-    <to foo="bar">Me</to>
+    <to foo="bar" fibble="wibble" bang="boom">Me</to>
     <from>You</from>
     <heading>Reminder</heading>
     <body>
