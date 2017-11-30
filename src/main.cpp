@@ -110,17 +110,16 @@ int main(int argc, char* argv[])
     }
 
     // test_split();
+    // xml::Element document;
+    // try
+    // {
+    //     xml::load("test/note.xml", document);
+    //     xml::pprint(document);
+    // }
+    // catch (const exception& e)
+    // {
+    //     cout << "ERROR: " << e.what() << endl;
+    // }
 
-    xml::Element document;
-    try
-    {
-        xml::load("test/note.xml", document);
-        xml::pprint(document);
-    }
-    catch (const exception& e)
-    {
-        cout << "ERROR: " << e.what() << endl;
-    }
-
-    // parse::parse_pascalish();
+    parse::parse_pascalish();
 }

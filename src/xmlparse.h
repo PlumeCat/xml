@@ -21,7 +21,7 @@ MODIFIED LIST
 
     XML PROLOG
 
-        prolog           ::=    XMLDecl? Misc* (doctypedecl Misc*)?
+        node prolog           ::=    XMLDecl? Misc* (doctypedecl Misc*)?
             XMLDecl             ::=   '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
                 EncodingDecl        ::=    S 'encoding' Eq ('"' EncName '"' | "'" EncName "'" )
                     EncName             ::=   [A-Za-z] ([A-Za-z0-9._] | '-')*
